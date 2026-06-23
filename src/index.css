@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-color: #f8fafc;
+    --text-color: #0f172a;
+    --card-bg: rgba(255, 255, 255, 0.7);
+    --border-color: rgba(226, 232, 240, 0.8);
+    --hover-bg: rgba(241, 245, 249, 0.8);
+  }
+
+  .dark {
+    --bg-color: #0f172a;
+    --text-color: #f8fafc;
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --border-color: rgba(51, 65, 85, 0.8);
+    --hover-bg: rgba(30, 41, 59, 0.9);
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-[var(--card-bg)] border border-[var(--border-color)] backdrop-blur-md rounded-2xl shadow-sm transition-all duration-300;
+  }
+  
+  .glass-card:hover {
+    @apply shadow-md transform -translate-y-1;
+  }
+
+  .btn-primary {
+    @apply bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 shadow-sm hover:shadow;
+  }
+  
+  .btn-secondary {
+    @apply bg-[var(--hover-bg)] text-[var(--text-color)] font-medium py-2 px-4 rounded-lg border border-[var(--border-color)] transition-colors duration-200;
+  }
+
+  .input-field {
+    @apply w-full bg-[var(--bg-color)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
