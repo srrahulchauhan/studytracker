@@ -22,7 +22,7 @@ const Settings = () => {
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
-    // Here we would normally update Firebase Auth profile or Firestore document
+    // Here we would normally update the user profile in a backend
     toast.success('Profile updated successfully!');
   };
 

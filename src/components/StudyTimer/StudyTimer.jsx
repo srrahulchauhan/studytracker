@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FiPlay, FiPause, FiSquare } from 'react-icons/fi';
-import { db } from '../../firebase/config';
+
 import { useAuth } from '../../hooks/useAuth';
 import { useStudySessions } from '../../hooks/useStudySessions';
 import { toast } from 'react-toastify';
@@ -53,8 +53,6 @@ const StudyTimer = () => {
       const endTime = new Date();
       const durationSeconds = Math.floor((endTime - sessionStartTime) / 1000);
       
-      const isDemo = currentUser?.uid === 'demo-user-123';
-      
       try {
         await addSession({
           subject: "General Study", // default for now
@@ -63,7 +61,7 @@ const StudyTimer = () => {
           duration: durationSeconds
         });
         
-        toast.success(`Study session saved! (${Math.floor(durationSeconds/60)} mins) ${isDemo ? '[Local Mode]' : ''}`);
+        toast.success(`Study session saved! (${Math.floor(durationSeconds/60)} mins)`);
       } catch (error) {
         toast.error("Failed to save session.");
       }
