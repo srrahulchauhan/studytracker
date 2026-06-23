@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FiPlay, FiPause, FiSquare } from 'react-icons/fi';
 import { db } from '../../firebase/config';
-import { collection, addDoc } from 'firebase/firestore';
 import { useAuth } from '../../hooks/useAuth';
+import { useStudySessions } from '../../hooks/useStudySessions';
 import { toast } from 'react-toastify';
 
 const StudyTimer = () => {
   const { currentUser } = useAuth();
-  const [time, setTime] = useState(25 * 60); // default 25 mins
+  const { addSession } = useStudySessions();
+  const [time, setTime] = useState(25 * 60); // 25 minutes default 25 mins
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState(null);
@@ -54,23 +55,17 @@ const StudyTimer = () => {
       
       const isDemo = currentUser?.uid === 'demo-user-123';
       
-      if (isDemo) {
-        toast.success(`Study session saved! (${Math.floor(durationSeconds/60)} mins) [Local Mode]`);
-      } else {
-        // Save session to Firebase
-        try {
-          await addDoc(collection(db, 'studySessions'), {
-            uid: currentUser.uid,
-            subject: "General Study", // default for now
-            startTime: sessionStartTime.toISOString(),
-            endTime: endTime.toISOString(),
-            duration: durationSeconds
-          });
-          toast.success(`Study session saved! (${Math.floor(durationSeconds/60)} mins)`);
-        } catch (error) {
-          console.error("Error saving session", error);
-          toast.error("Failed to save session. Check Firebase config.");
-        }
+      try {
+        await addSession({
+          subject: "General Study", // default for now
+          startTime: sessionStartTime.toISOString(),
+          endTime: endTime.toISOString(),
+          duration: durationSeconds
+        });
+        
+        toast.success(`Study session saved! (${Math.floor(durationSeconds/60)} mins) ${isDemo ? '[Local Mode]' : ''}`);
+      } catch (error) {
+        toast.error("Failed to save session.");
       }
     }
     

@@ -1,17 +1,34 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FiClock, FiCheckCircle, FiCircle, FiTrendingUp, FiBook, FiAward } from 'react-icons/fi';
-
-const metrics = [
-  { id: 1, title: "Today's Study Hours", value: "3.5h", icon: FiClock, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30" },
-  { id: 2, title: "Total Study Hours", value: "124h", icon: FiAward, color: "text-purple-500", bg: "bg-purple-100 dark:bg-purple-900/30" },
-  { id: 3, title: "Completed Tasks", value: "12", icon: FiCheckCircle, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30" },
-  { id: 4, title: "Pending Tasks", value: "5", icon: FiCircle, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30" },
-  { id: 5, title: "Current Streak", value: "7 Days 🔥", icon: FiTrendingUp, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30" },
-  { id: 6, title: "Most Studied", value: "React JS", icon: FiBook, color: "text-primary-500", bg: "bg-primary-100 dark:bg-primary-900/30" },
-];
+import { useTasks } from '../../hooks/useTasks';
+import { useStudySessions } from '../../hooks/useStudySessions';
 
 const DashboardCards = () => {
+  const { tasks } = useTasks();
+  const { sessions } = useStudySessions();
+  
+  const completedTasks = tasks.filter(t => t.status === 'Completed').length;
+  const pendingTasks = tasks.filter(t => t.status !== 'Completed').length;
+
+  // Calculate study hours
+  const totalSeconds = sessions.reduce((acc, curr) => acc + (curr.duration || 0), 0);
+  const totalHours = (totalSeconds / 3600).toFixed(1);
+
+  const today = new Date().toISOString().split('T')[0];
+  const todaySeconds = sessions
+    .filter(s => s.startTime?.startsWith(today))
+    .reduce((acc, curr) => acc + (curr.duration || 0), 0);
+  const todayHours = (todaySeconds / 3600).toFixed(1);
+
+  const metrics = [
+    { id: 1, title: "Today's Study Hours", value: `${todayHours}h`, icon: FiClock, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30" },
+    { id: 2, title: "Total Study Hours", value: `${totalHours}h`, icon: FiAward, color: "text-purple-500", bg: "bg-purple-100 dark:bg-purple-900/30" },
+    { id: 3, title: "Completed Tasks", value: completedTasks.toString(), icon: FiCheckCircle, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30" },
+    { id: 4, title: "Pending Tasks", value: pendingTasks.toString(), icon: FiCircle, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30" },
+    { id: 5, title: "Current Streak", value: "0 Days", icon: FiTrendingUp, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30" },
+    { id: 6, title: "Most Studied", value: "-", icon: FiBook, color: "text-primary-500", bg: "bg-primary-100 dark:bg-primary-900/30" },
+  ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6">

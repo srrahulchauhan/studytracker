@@ -1,73 +1,109 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell
+  LineChart, Line, AreaChart, Area, PieChart, Pie, Cell 
 } from 'recharts';
+import { useStudySessions } from '../../hooks/useStudySessions';
 
-const weeklyData = [
-  { name: 'Mon', hours: 2.5 },
-  { name: 'Tue', hours: 3.8 },
-  { name: 'Wed', hours: 1.5 },
-  { name: 'Thu', hours: 4.2 },
-  { name: 'Fri', hours: 3.0 },
-  { name: 'Sat', hours: 5.5 },
-  { name: 'Sun', hours: 4.0 },
-];
-
-const monthlyProgressData = [
-  { name: 'Week 1', progress: 20 },
-  { name: 'Week 2', progress: 35 },
-  { name: 'Week 3', progress: 50 },
-  { name: 'Week 4', progress: 80 },
-];
-
-const subjectData = [
-  { name: 'Math', value: 400, color: '#3b82f6' },
-  { name: 'Physics', value: 300, color: '#10b981' },
-  { name: 'Coding', value: 500, color: '#8b5cf6' },
-  { name: 'Literature', value: 200, color: '#f59e0b' },
-];
+const subjectColors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444'];
 
 const DashboardCharts = () => {
+  const { sessions } = useStudySessions();
+
+  const chartData = useMemo(() => {
+    // Initialize week data
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const weekMap = { 'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0 };
+    
+    // Initialize subjects
+    const subjectsMap = {};
+
+    const now = new Date();
+    // Start of current week (Monday)
+    const currentDay = now.getDay();
+    const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1;
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - distanceToMonday);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    sessions.forEach(session => {
+      const sessionDate = new Date(session.startTime);
+      const hours = (session.duration || 0) / 3600;
+
+      // Subject distribution (All time)
+      const subj = session.subject || 'General Study';
+      subjectsMap[subj] = (subjectsMap[subj] || 0) + hours;
+
+      // Weekly data
+      if (sessionDate >= startOfWeek) {
+        const dayName = days[sessionDate.getDay()];
+        weekMap[dayName] += hours;
+      }
+    });
+
+    const weeklyData = [
+      { name: 'Mon', hours: Number(weekMap['Mon'].toFixed(1)) },
+      { name: 'Tue', hours: Number(weekMap['Tue'].toFixed(1)) },
+      { name: 'Wed', hours: Number(weekMap['Wed'].toFixed(1)) },
+      { name: 'Thu', hours: Number(weekMap['Thu'].toFixed(1)) },
+      { name: 'Fri', hours: Number(weekMap['Fri'].toFixed(1)) },
+      { name: 'Sat', hours: Number(weekMap['Sat'].toFixed(1)) },
+      { name: 'Sun', hours: Number(weekMap['Sun'].toFixed(1)) },
+    ];
+
+    const subjectData = Object.keys(subjectsMap).map((key, index) => ({
+      name: key,
+      value: Number(subjectsMap[key].toFixed(1)),
+      color: subjectColors[index % subjectColors.length]
+    })).filter(s => s.value > 0);
+
+    if (subjectData.length === 0) {
+      subjectData.push({ name: 'No Data', value: 1, color: '#94a3b8' });
+    }
+
+    return { weeklyData, subjectData };
+  }, [sessions]);
+
+  // Dummy monthly data as calculating weeks of month is complex for this view
+  const monthlyProgressData = [
+    { name: 'Week 1', progress: 20 },
+    { name: 'Week 2', progress: 35 },
+    { name: 'Week 3', progress: 50 },
+    { name: 'Week 4', progress: 80 },
+  ];
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       <div className="glass-card p-6">
-        <h3 className="text-lg font-semibold mb-4">Weekly Study Hours</h3>
+        <h3 className="text-lg font-semibold mb-6 text-gray-800 dark:text-white">Weekly Focus (Hours)</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={weeklyData}>
+            <AreaChart data={chartData.weeklyData}>
+              <defs>
+                <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} />
               <YAxis axisLine={false} tickLine={false} />
-              <Tooltip cursor={{fill: 'rgba(226, 232, 240, 0.4)'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-              <Bar dataKey="hours" fill="#14b8a6" radius={[4, 4, 0, 0]} />
-            </BarChart>
+              <Tooltip 
+                contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
+              />
+              <Area type="monotone" dataKey="hours" stroke="#3b82f6" fillOpacity={1} fill="url(#colorHours)" />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       <div className="glass-card p-6">
-        <h3 className="text-lg font-semibold mb-4">Monthly Progress</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={monthlyProgressData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-              <Line type="monotone" dataKey="progress" stroke="#8b5cf6" strokeWidth={3} dot={{r: 4, strokeWidth: 2}} activeDot={{r: 6}} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="glass-card p-6 lg:col-span-2">
-        <h3 className="text-lg font-semibold mb-4">Subject Wise Study</h3>
+        <h3 className="text-lg font-semibold mb-6 text-gray-800 dark:text-white">Subject Distribution</h3>
         <div className="h-64 flex items-center justify-center">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={subjectData}
+                data={chartData.subjectData}
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
@@ -75,19 +111,20 @@ const DashboardCharts = () => {
                 paddingAngle={5}
                 dataKey="value"
               >
-                {subjectData.map((entry, index) => (
+                {chartData.subjectData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+              <Tooltip 
+                contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
+              />
             </PieChart>
           </ResponsiveContainer>
-          
-          <div className="flex flex-col justify-center ml-8 gap-3">
-            {subjectData.map((item, index) => (
-              <div key={index} className="flex items-center gap-2">
+          <div className="ml-4 flex flex-col gap-2">
+            {chartData.subjectData.slice(0, 4).map((item, index) => (
+              <div key={index} className="flex items-center gap-2 text-sm">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                <span className="text-sm">{item.name}</span>
+                <span className="text-gray-600 dark:text-gray-300">{item.name}</span>
               </div>
             ))}
           </div>
