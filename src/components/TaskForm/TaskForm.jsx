@@ -45,13 +45,13 @@ const TaskForm = ({ isOpen, onClose, onSubmit, initialData }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          <div className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white dark:bg-dark-card border border-light-border dark:border-dark-border rounded-2xl shadow-xl z-50 overflow-hidden"
+            className="relative w-full max-w-md bg-white dark:bg-dark-card border border-light-border dark:border-dark-border rounded-2xl shadow-xl z-50 overflow-hidden my-auto"
           >
             <div className="flex justify-between items-center p-4 border-b border-light-border dark:border-dark-border">
               <h2 className="text-xl font-bold">{initialData ? 'Edit Task' : 'Add New Task'}</h2>
@@ -117,7 +117,7 @@ const TaskForm = ({ isOpen, onClose, onSubmit, initialData }) => {
               </div>
             </form>
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
   );

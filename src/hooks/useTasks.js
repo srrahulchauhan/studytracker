@@ -89,7 +89,7 @@ export const useTasks = () => {
       toast.success("Task added successfully");
     } catch (error) {
       console.error("Error adding task: ", error);
-      toast.error("Failed to add task");
+      toast.error(`Failed to add task: ${error.message}`);
     }
   };
 

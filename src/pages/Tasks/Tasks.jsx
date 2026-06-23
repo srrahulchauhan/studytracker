@@ -15,11 +15,19 @@ const Tasks = () => {
   // Filters
   const [statusFilter, setStatusFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
+  const [starredFilter, setStarredFilter] = useState(false);
 
+  // Filter and sort tasks
   const filteredTasks = tasks.filter(task => {
     if (statusFilter !== 'All' && task.status !== statusFilter) return false;
     if (priorityFilter !== 'All' && task.priority !== priorityFilter) return false;
+    if (starredFilter && !task.isStarred) return false;
     return true;
+  }).sort((a, b) => {
+    // Sort by Date (newest date first) and then by startTime
+    const dateA = new Date(`${a.date}T${a.startTime}`);
+    const dateB = new Date(`${b.date}T${b.startTime}`);
+    return dateB - dateA;
   });
 
   const handleOpenModal = (task = null) => {
@@ -87,6 +95,16 @@ const Tasks = () => {
               <option value="Low">Low</option>
             </select>
           </div>
+
+          <label className="flex items-center gap-2 cursor-pointer ml-2">
+            <input 
+              type="checkbox" 
+              checked={starredFilter} 
+              onChange={(e) => setStarredFilter(e.target.checked)} 
+              className="rounded text-yellow-500 focus:ring-yellow-500 bg-light-card dark:bg-dark-card border-light-border dark:border-dark-border"
+            />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Starred Only</span>
+          </label>
         </div>
 
         <div className="flex bg-light-bg dark:bg-dark-bg rounded-lg p-1 border border-light-border dark:border-dark-border self-end md:self-auto">
@@ -130,6 +148,7 @@ const Tasks = () => {
                   onEdit={handleOpenModal} 
                   onDelete={deleteTask}
                   onComplete={handleComplete}
+                  onUpdate={updateTask}
                 />
               </motion.div>
             ))}
@@ -141,6 +160,7 @@ const Tasks = () => {
           onEdit={handleOpenModal} 
           onDelete={deleteTask}
           onComplete={handleComplete}
+          onUpdate={updateTask}
         />
       )}
 
