@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar/Sidebar';
 import Navbar from './Navbar/Navbar';
+import FloatingTimer from './FloatingTimer/FloatingTimer';
 
 const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -21,6 +22,7 @@ const Layout = () => {
           <Outlet />
         </main>
       </div>
+      <FloatingTimer />
     </div>
   );
 };

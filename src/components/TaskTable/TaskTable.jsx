@@ -2,61 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { FiEdit2, FiTrash2, FiCheck, FiStar, FiPlay, FiSquare } from 'react-icons/fi';
 import { useStudySessions } from '../../hooks/useStudySessions';
 import { toast } from 'react-toastify';
+import { useTimer } from '../../context/TimerContext';
 
 const TaskTableRow = ({ task, onEdit, onDelete, onComplete, onUpdate }) => {
-  const { addSession } = useStudySessions();
-  const [isRunning, setIsRunning] = useState(false);
-  const [timerSeconds, setTimerSeconds] = useState(task.timeSpent || 0);
+  const { activeTask, isRunning: globalIsRunning, timerSeconds: globalTimerSeconds, pauseTimer, toggleTimer } = useTimer();
 
-  useEffect(() => {
-    if (!isRunning) {
-      setTimerSeconds(task.timeSpent || 0);
-    }
-  }, [task.timeSpent, isRunning]);
+  const isThisTaskActive = activeTask?.id === task.id;
+  const isRunning = isThisTaskActive && globalIsRunning;
+  const timerSeconds = isThisTaskActive ? globalTimerSeconds : (task.timeSpent || 0);
 
-  useEffect(() => {
-    let interval = null;
-    if (isRunning) {
-      interval = setInterval(() => {
-        setTimerSeconds(prev => prev + 1);
-      }, 1000);
-    } else if (!isRunning && timerSeconds !== 0) {
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [isRunning, timerSeconds]);
-
-  const handleToggleTimer = async () => {
-    if (isRunning) {
-      setIsRunning(false);
-      const timeSpentNow = timerSeconds;
-      const previousTime = task.timeSpent || 0;
-      const sessionDuration = timeSpentNow - previousTime;
-      onUpdate(task.id, { timeSpent: timeSpentNow });
-
-      if (sessionDuration > 10) {
-        try {
-          const endTime = new Date();
-          const startTime = new Date(endTime.getTime() - sessionDuration * 1000);
-          await addSession({
-            subject: task.subject,
-            topic: task.topic,
-            startTime: startTime.toISOString(),
-            endTime: endTime.toISOString(),
-            duration: sessionDuration
-          });
-          toast.success(`Session saved! (+${Math.floor(sessionDuration / 60)} mins)`);
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    } else {
-      if (task.status === 'Completed') return;
-      setIsRunning(true);
-      if (task.status === 'Pending') {
-        onUpdate(task.id, { status: 'In Progress' });
-      }
-    }
+  const handleToggleTimer = () => {
+    toggleTimer(task);
   };
 
   const toggleStar = () => {
@@ -141,7 +97,7 @@ const TaskTableRow = ({ task, onEdit, onDelete, onComplete, onUpdate }) => {
         {task.status !== 'Completed' && (
           <button 
             onClick={() => {
-              if (isRunning) handleToggleTimer();
+              if (isRunning) pauseTimer();
               onComplete(task);
             }} 
             className="p-1.5 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors" 

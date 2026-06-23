@@ -2,71 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { FiEdit2, FiTrash2, FiClock, FiCalendar, FiStar, FiPlay, FiSquare } from 'react-icons/fi';
 import { useStudySessions } from '../../hooks/useStudySessions';
 import { toast } from 'react-toastify';
+import { useTimer } from '../../context/TimerContext';
 
 const TaskCard = ({ task, onEdit, onDelete, onComplete, onUpdate }) => {
-  const { addSession } = useStudySessions();
-  const [isRunning, setIsRunning] = useState(false);
-  const [timerSeconds, setTimerSeconds] = useState(task.timeSpent || 0);
+  const { activeTask, isRunning: globalIsRunning, timerSeconds: globalTimerSeconds, pauseTimer, toggleTimer } = useTimer();
 
-  // Sync state if task is updated externally
-  useEffect(() => {
-    if (!isRunning) {
-      setTimerSeconds(task.timeSpent || 0);
-    }
-  }, [task.timeSpent, isRunning]);
+  const isThisTaskActive = activeTask?.id === task.id;
+  const isRunning = isThisTaskActive && globalIsRunning;
+  const timerSeconds = isThisTaskActive ? globalTimerSeconds : (task.timeSpent || 0);
 
-  useEffect(() => {
-    let interval = null;
-    if (isRunning) {
-      interval = setInterval(() => {
-        setTimerSeconds(prev => prev + 1);
-      }, 1000);
-    } else if (!isRunning && timerSeconds !== 0) {
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [isRunning, timerSeconds]);
-
-  const handleToggleTimer = async () => {
-    if (isRunning) {
-      // Pause
-      setIsRunning(false);
-      const timeSpentNow = timerSeconds;
-      
-      // Calculate session duration (the diff from what was saved)
-      const previousTime = task.timeSpent || 0;
-      const sessionDuration = timeSpentNow - previousTime;
-
-      // Update task
-      onUpdate(task.id, { timeSpent: timeSpentNow });
-
-      // Add to study sessions if duration > 10 seconds (to avoid spam)
-      if (sessionDuration > 10) {
-        try {
-          const endTime = new Date();
-          const startTime = new Date(endTime.getTime() - sessionDuration * 1000);
-          
-          await addSession({
-            subject: task.subject,
-            topic: task.topic,
-            startTime: startTime.toISOString(),
-            endTime: endTime.toISOString(),
-            duration: sessionDuration
-          });
-          toast.success(`Session saved! (+${Math.floor(sessionDuration / 60)} mins)`);
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    } else {
-      // Play
-      if (task.status === 'Completed') return;
-      setIsRunning(true);
-      // If task is pending, move to in-progress
-      if (task.status === 'Pending') {
-        onUpdate(task.id, { status: 'In Progress' });
-      }
-    }
+  const handleToggleTimer = () => {
+    toggleTimer(task);
   };
 
   const toggleStar = () => {
@@ -171,7 +117,7 @@ const TaskCard = ({ task, onEdit, onDelete, onComplete, onUpdate }) => {
           {task.status !== 'Completed' && (
             <button 
               onClick={() => {
-                if (isRunning) handleToggleTimer(); // Pause before complete
+                if (isRunning) pauseTimer(); // Pause before complete
                 onComplete(task);
               }}
               className="text-sm text-green-600 font-medium hover:underline bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-lg"

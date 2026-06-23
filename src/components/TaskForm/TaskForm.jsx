@@ -11,7 +11,8 @@ const TaskForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     startTime: '09:00',
     endTime: '10:00',
     priority: 'Medium',
-    status: 'Pending'
+    status: 'Pending',
+    breakInterval: 30
   });
 
   useEffect(() => {
@@ -26,7 +27,8 @@ const TaskForm = ({ isOpen, onClose, onSubmit, initialData }) => {
         startTime: '09:00',
         endTime: '10:00',
         priority: 'Medium',
-        status: 'Pending'
+        status: 'Pending',
+        breakInterval: 30
       });
     }
   }, [initialData, isOpen]);
@@ -102,13 +104,19 @@ const TaskForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select name="status" value={formData.status} onChange={handleChange} className="input-field">
-                  <option value="Pending">Pending</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Status</label>
+                  <select name="status" value={formData.status} onChange={handleChange} className="input-field">
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Break Alarm (mins)</label>
+                  <input type="number" name="breakInterval" value={formData.breakInterval} onChange={handleChange} min="0" max="120" className="input-field" placeholder="0 to disable" />
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-4">

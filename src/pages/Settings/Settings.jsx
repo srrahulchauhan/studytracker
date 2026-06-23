@@ -90,7 +90,7 @@ const Settings = () => {
               <div>
                 <button className="btn-secondary text-sm">Change Avatar</button>
                 <p className="text-xs text-light-textMuted dark:text-dark-textMuted mt-2">
-                  JPG, GIF or PNG. Max size of 800K
+                  JPG, GIF or PNG. Max size of 20MB
                 </p>
               </div>
             </div>
