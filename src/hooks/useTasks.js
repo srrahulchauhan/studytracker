@@ -48,8 +48,31 @@ export const useTasks = () => {
   };
 
   const updateTask = async (id, updatedData) => {
-    const updatedTasks = tasks.map(t => t.id === id ? { ...t, ...updatedData } : t);
-    saveLocalTasks(updatedTasks);
+    let newTasksList = [...tasks];
+    const taskIndex = newTasksList.findIndex(t => t.id === id);
+    if (taskIndex === -1) return;
+
+    const existingTask = newTasksList[taskIndex];
+    const updatedTask = { ...existingTask, ...updatedData };
+    newTasksList[taskIndex] = updatedTask;
+
+    // Clone task if it is repeating daily and just marked as Completed
+    if (updatedData.status === 'Completed' && existingTask.status !== 'Completed' && existingTask.repeatType === 'Daily') {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const clonedTask = {
+        ...existingTask,
+        id: Date.now().toString() + Math.floor(Math.random() * 1000),
+        status: 'Pending',
+        timeSpent: 0,
+        date: tomorrow.toISOString().split('T')[0],
+        createdAt: new Date().toISOString()
+      };
+      newTasksList.push(clonedTask);
+    }
+
+    saveLocalTasks(newTasksList);
     toast.success("Task updated");
   };
 

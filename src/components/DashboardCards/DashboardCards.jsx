@@ -9,15 +9,15 @@ const DashboardCards = () => {
   const { tasks } = useTasks();
   const { sessions } = useStudySessions();
   const navigate = useNavigate();
-  
+  const today = new Date().toISOString().split('T')[0];
   const completedTasks = tasks.filter(t => t.status === 'Completed').length;
-  const pendingTasks = tasks.filter(t => t.status !== 'Completed').length;
+  // Pending tasks should only count tasks scheduled for today or earlier
+  const pendingTasks = tasks.filter(t => t.status !== 'Completed' && t.date <= today).length;
 
   // Calculate study hours
   const totalSeconds = sessions.reduce((acc, curr) => acc + (curr.duration || 0), 0);
   const totalHours = (totalSeconds / 3600).toFixed(1);
 
-  const today = new Date().toISOString().split('T')[0];
   const todaySeconds = sessions
     .filter(s => s.startTime?.startsWith(today))
     .reduce((acc, curr) => acc + (curr.duration || 0), 0);

@@ -13,15 +13,25 @@ const Tasks = () => {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   
   // Filters
+  const [timeframeFilter, setTimeframeFilter] = useState('Today & Overdue');
   const [statusFilter, setStatusFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [starredFilter, setStarredFilter] = useState(false);
 
   // Filter and sort tasks
+  const today = new Date().toISOString().split('T')[0];
+
   const filteredTasks = tasks.filter(task => {
     if (statusFilter !== 'All' && task.status !== statusFilter) return false;
     if (priorityFilter !== 'All' && task.priority !== priorityFilter) return false;
     if (starredFilter && !task.isStarred) return false;
+    
+    if (timeframeFilter === 'Today & Overdue') {
+      if (task.date > today) return false;
+    } else if (timeframeFilter === 'Upcoming') {
+      if (task.date <= today) return false;
+    }
+
     return true;
   }).sort((a, b) => {
     // Sort by Date (newest date first) and then by startTime
@@ -71,6 +81,18 @@ const Tasks = () => {
         <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
           <div className="flex items-center gap-2">
             <FiFilter className="text-light-textMuted dark:text-dark-textMuted" />
+            <select 
+              value={timeframeFilter} 
+              onChange={(e) => setTimeframeFilter(e.target.value)}
+              className="input-field py-1"
+            >
+              <option value="Today & Overdue">Today & Overdue</option>
+              <option value="Upcoming">Upcoming</option>
+              <option value="All Time">All Time</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
             <select 
               value={statusFilter} 
               onChange={(e) => setStatusFilter(e.target.value)}

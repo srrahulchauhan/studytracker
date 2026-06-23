@@ -16,6 +16,27 @@ export const TimerProvider = ({ children }) => {
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [sessionSeconds, setSessionSeconds] = useState(0);
 
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  const showNotification = (title, body) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, { body });
+    }
+  };
+
+  const getTargetDuration = (start, end) => {
+    if (!start || !end) return null;
+    const [sH, sM] = start.split(':').map(Number);
+    const [eH, eM] = end.split(':').map(Number);
+    const startSec = sH * 3600 + sM * 60;
+    const endSec = eH * 3600 + eM * 60;
+    return endSec > startSec ? endSec - startSec : null;
+  };
+
   const playBeep = () => {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -51,7 +72,20 @@ export const TimerProvider = ({ children }) => {
     let interval = null;
     if (isRunning) {
       interval = setInterval(() => {
-        setTimerSeconds(prev => prev + 1);
+        setTimerSeconds(prev => {
+          const nextTimer = prev + 1;
+          const target = getTargetDuration(activeTask?.startTime, activeTask?.endTime);
+          if (target && nextTimer === target) {
+             playBeep();
+             toast.success(`Task Complete! You reached your goal for ${activeTask.topic}.`, {
+                icon: '🎉',
+                autoClose: false,
+             });
+             showNotification('Task Complete!', `You reached your time goal for ${activeTask.topic}.`);
+          }
+          return nextTimer;
+        });
+        
         setSessionSeconds(prev => {
           const next = prev + 1;
           const breakInterval = activeTask?.breakInterval ? parseInt(activeTask.breakInterval, 10) : 0;
@@ -61,6 +95,7 @@ export const TimerProvider = ({ children }) => {
               icon: '🔔',
               autoClose: false, // Wait for user to dismiss
             });
+            showNotification('Time for a Break!', `You've been studying for ${breakInterval} minutes.`);
           }
           return next;
         });

@@ -12,7 +12,8 @@ const TaskForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     endTime: '10:00',
     priority: 'Medium',
     status: 'Pending',
-    breakInterval: 30
+    breakInterval: 30,
+    repeatType: 'None'
   });
 
   useEffect(() => {
@@ -28,7 +29,8 @@ const TaskForm = ({ isOpen, onClose, onSubmit, initialData }) => {
         endTime: '10:00',
         priority: 'Medium',
         status: 'Pending',
-        breakInterval: 30
+        breakInterval: 30,
+        repeatType: 'None'
       });
     }
   }, [initialData, isOpen]);
@@ -78,7 +80,7 @@ const TaskForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                 <textarea name="description" value={formData.description} onChange={handleChange} className="input-field resize-none h-20" placeholder="Details..."></textarea>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Date</label>
                   <input required type="date" name="date" value={formData.date} onChange={handleChange} className="input-field" />
@@ -93,7 +95,7 @@ const TaskForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Start Time</label>
                   <input required type="time" name="startTime" value={formData.startTime} onChange={handleChange} className="input-field" />
@@ -104,13 +106,23 @@ const TaskForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Status</label>
                   <select name="status" value={formData.status} onChange={handleChange} className="input-field">
                     <option value="Pending">Pending</option>
                     <option value="In Progress">In Progress</option>
                     <option value="Completed">Completed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Repeat</label>
+                  <select name="repeatType" value={formData.repeatType} onChange={handleChange} className="input-field">
+                    <option value="None">None</option>
+                    <option value="Daily">Daily</option>
                   </select>
                 </div>
                 <div>
