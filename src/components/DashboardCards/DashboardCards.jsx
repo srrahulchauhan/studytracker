@@ -3,10 +3,12 @@ import { motion } from 'framer-motion';
 import { FiClock, FiCheckCircle, FiCircle, FiTrendingUp, FiBook, FiAward } from 'react-icons/fi';
 import { useTasks } from '../../hooks/useTasks';
 import { useStudySessions } from '../../hooks/useStudySessions';
+import { useNavigate } from 'react-router-dom';
 
 const DashboardCards = () => {
   const { tasks } = useTasks();
   const { sessions } = useStudySessions();
+  const navigate = useNavigate();
   
   const completedTasks = tasks.filter(t => t.status === 'Completed').length;
   const pendingTasks = tasks.filter(t => t.status !== 'Completed').length;
@@ -22,12 +24,12 @@ const DashboardCards = () => {
   const todayHours = (todaySeconds / 3600).toFixed(1);
 
   const metrics = [
-    { id: 1, title: "Today's Study Hours", value: `${todayHours}h`, icon: FiClock, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30" },
-    { id: 2, title: "Total Study Hours", value: `${totalHours}h`, icon: FiAward, color: "text-purple-500", bg: "bg-purple-100 dark:bg-purple-900/30" },
-    { id: 3, title: "Completed Tasks", value: completedTasks.toString(), icon: FiCheckCircle, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30" },
-    { id: 4, title: "Pending Tasks", value: pendingTasks.toString(), icon: FiCircle, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30" },
-    { id: 5, title: "Current Streak", value: "0 Days", icon: FiTrendingUp, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30" },
-    { id: 6, title: "Most Studied", value: "-", icon: FiBook, color: "text-primary-500", bg: "bg-primary-100 dark:bg-primary-900/30" },
+    { id: 1, title: "Today's Study Hours", value: `${todayHours}h`, icon: FiClock, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30", path: "/analytics" },
+    { id: 2, title: "Total Study Hours", value: `${totalHours}h`, icon: FiAward, color: "text-purple-500", bg: "bg-purple-100 dark:bg-purple-900/30", path: "/analytics" },
+    { id: 3, title: "Completed Tasks", value: completedTasks.toString(), icon: FiCheckCircle, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30", path: "/tasks" },
+    { id: 4, title: "Pending Tasks", value: pendingTasks.toString(), icon: FiCircle, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30", path: "/tasks" },
+    { id: 5, title: "Current Streak", value: "0 Days", icon: FiTrendingUp, color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30", path: "/habits" },
+    { id: 6, title: "Most Studied", value: "-", icon: FiBook, color: "text-primary-500", bg: "bg-primary-100 dark:bg-primary-900/30", path: "/analytics" },
   ];
 
   return (
@@ -38,7 +40,8 @@ const DashboardCards = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: index * 0.1 }}
-          className="glass-card p-6 flex items-center justify-between"
+          onClick={() => navigate(metric.path)}
+          className="glass-card p-6 flex items-center justify-between cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
         >
           <div>
             <p className="text-sm text-light-textMuted dark:text-dark-textMuted mb-1">{metric.title}</p>
