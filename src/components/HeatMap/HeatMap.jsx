@@ -1,27 +1,50 @@
-import React from 'react';
-
-const generateHeatmapData = () => {
-  const data = [];
-  const today = new Date();
-  
-  // Generate last 365 days
-  for (let i = 365; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(today.getDate() - i);
-    
-    // Randomize for visual purposes
-    const val = Math.floor(Math.random() * 5); // 0 to 4
-    
-    data.push({
-      date: d.toISOString().split('T')[0],
-      count: val
-    });
-  }
-  return data;
-};
+import React, { useMemo } from 'react';
+import { useStudySessions } from '../../hooks/useStudySessions';
 
 const HeatMap = () => {
-  const data = generateHeatmapData();
+  const { sessions } = useStudySessions();
+
+  const data = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const heatData = [];
+    const sessionsMap = {};
+
+    // Group sessions by date
+    sessions.forEach(session => {
+      if (!session.startTime) return;
+      const dateStr = session.startTime.split('T')[0];
+      const hours = (session.duration || 0) / 3600;
+      sessionsMap[dateStr] = (sessionsMap[dateStr] || 0) + hours;
+    });
+
+    // Generate last 365 days
+    for (let i = 365; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      // Ensure we format as YYYY-MM-DD correctly taking local timezone into account
+      const offset = d.getTimezoneOffset()
+      const localDate = new Date(d.getTime() - (offset*60*1000))
+      const dateStr = localDate.toISOString().split('T')[0]
+      
+      let val = 0;
+      if (sessionsMap[dateStr]) {
+        const h = sessionsMap[dateStr];
+        if (h > 0 && h < 1) val = 1;
+        else if (h >= 1 && h < 3) val = 2;
+        else if (h >= 3 && h < 5) val = 3;
+        else if (h >= 5) val = 4;
+      }
+      
+      heatData.push({
+        date: dateStr,
+        count: val,
+        hours: (sessionsMap[dateStr] || 0).toFixed(1)
+      });
+    }
+    return heatData;
+  }, [sessions]);
   
   // Group by weeks
   const weeks = [];
@@ -57,7 +80,7 @@ const HeatMap = () => {
               <div 
                 key={dayIndex}
                 className={`w-3 h-3 rounded-sm ${getColor(day.count)} transition-colors hover:ring-2 ring-primary-400`}
-                title={`${day.count} hours on ${day.date}`}
+                title={`${day.hours} hours on ${day.date}`}
               ></div>
             ))}
           </div>
