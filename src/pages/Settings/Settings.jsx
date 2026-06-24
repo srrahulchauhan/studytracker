@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
+import { useTasks } from '../../hooks/useTasks';
+import { useStudySessions } from '../../hooks/useStudySessions';
 import { FiUser, FiMoon, FiSun, FiDownload, FiSave } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import jsPDF from 'jspdf';
@@ -9,6 +11,8 @@ import * as XLSX from 'xlsx';
 const Settings = () => {
   const { currentUser } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
+  const { tasks } = useTasks();
+  const { sessions } = useStudySessions();
   
   const [profileData, setProfileData] = useState({
     name: currentUser?.displayName || '',
@@ -26,20 +30,24 @@ const Settings = () => {
     toast.success('Profile updated successfully!');
   };
 
+  const completedTasksCount = tasks.filter(t => t.status === 'Completed').length;
+  const totalSeconds = sessions.reduce((acc, curr) => acc + (curr.duration || 0), 0);
+  const totalHours = (totalSeconds / 3600).toFixed(1);
+
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.text("StudyFlow Report", 20, 20);
     doc.text(`Name: ${profileData.name}`, 20, 30);
     doc.text(`Email: ${profileData.email}`, 20, 40);
-    doc.text("Total Study Hours: 124h", 20, 60);
-    doc.text("Completed Tasks: 12", 20, 70);
+    doc.text(`Total Study Hours: ${totalHours}h`, 20, 60);
+    doc.text(`Completed Tasks: ${completedTasksCount}`, 20, 70);
     doc.save("studyflow_report.pdf");
     toast.success('PDF Exported!');
   };
 
   const exportExcel = () => {
     const ws = XLSX.utils.json_to_sheet([
-      { Name: profileData.name, Email: profileData.email, TotalHours: 124, TasksCompleted: 12 }
+      { Name: profileData.name, Email: profileData.email, TotalHours: totalHours, TasksCompleted: completedTasksCount }
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Report");
@@ -49,7 +57,7 @@ const Settings = () => {
 
   const exportCSV = () => {
     const ws = XLSX.utils.json_to_sheet([
-      { Name: profileData.name, Email: profileData.email, TotalHours: 124, TasksCompleted: 12 }
+      { Name: profileData.name, Email: profileData.email, TotalHours: totalHours, TasksCompleted: completedTasksCount }
     ]);
     const csv = XLSX.utils.sheet_to_csv(ws);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
