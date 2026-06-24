@@ -117,8 +117,32 @@ export const TimerProvider = ({ children }) => {
     // If it's the same task, just resume from current timerSeconds
     // If it's a new task, load its timeSpent
     if (!activeTask || activeTask.id !== task.id) {
-      setActiveTask(task);
-      setTimerSeconds(task.timeSpent || 0);
+      let initialSeconds = task.timeSpent || 0;
+      let updatedTask = { ...task };
+      let updatesToSave = {};
+
+      if (task.status === 'Pending') {
+        updatesToSave.status = 'In Progress';
+        updatedTask.status = 'In Progress';
+
+        if (task.date && task.startTime) {
+          const startDateTime = new Date(`${task.date}T${task.startTime}`);
+          const now = new Date();
+          if (now > startDateTime) {
+            const lateSeconds = Math.floor((now - startDateTime) / 1000);
+            initialSeconds += lateSeconds;
+            updatesToSave.timeSpent = initialSeconds;
+            updatedTask.timeSpent = initialSeconds;
+            
+            toast.info(`Task started late. ${Math.floor(lateSeconds / 60)} minutes added to timer.`);
+          }
+        }
+        
+        updateTask(task.id, updatesToSave);
+      }
+
+      setActiveTask(updatedTask);
+      setTimerSeconds(initialSeconds);
       setSessionSeconds(0);
     } else if (!isRunning) {
       // Resuming the same task
@@ -126,10 +150,6 @@ export const TimerProvider = ({ children }) => {
     }
     
     setIsRunning(true);
-    
-    if (task.status === 'Pending') {
-      updateTask(task.id, { status: 'In Progress' });
-    }
   };
 
   const pauseTimer = async () => {
